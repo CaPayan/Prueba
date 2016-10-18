@@ -66,7 +66,7 @@
             $scope.DardeAlta =function (nombreVal,edadVal)
             { 
                 $http({
-                    method : 'PUT',
+                    method : 'POST',
                     url : 'http://localhost:57694/api/example/',
                     data: {'edad':edadVal, 'nombre':nombreVal}
                 }).success(function(data, status, headers, config) {
