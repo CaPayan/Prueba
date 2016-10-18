@@ -1,0 +1,130 @@
+<html>
+   
+    <head>
+        <title>Aplicacion de Ejemplo</title>
+        <link rel="stylesheet" href="bootstrap.css" media="screen">
+        <link rel="stylesheet" href="custom.min.css">
+        <link rel="stylesheet" href="paginaEjemplo.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.4/angular.js"></script>
+    </head>
+   
+    <body  ng-app='ModalDemo'>
+        <div class="container">
+            <div class="col-lg-8 col-md-7 col-sm-6">
+                <h1>Aplicacion Ejemplo</h1>
+            </div>
+        </div>    
+        <br>
+        <div ng-controller='MyCtrl' class="container">
+            <button ng-click='toggleModal()' class="btn btn-primary">Dar de Alta</button>
+            </br>
+            <div >
+                <table width='450px' class="table table-striped table-hover" >
+                    <tr>
+                        <th>Nombre
+                        </th>
+                        <th>Edad
+                        </th>
+                    </tr>
+                    <tr ng-repeat="empleado in empleados">
+                        <td>{{empleado.nombre}}
+                        </td>
+                        <td>{{empleado.edad}}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <modal-dialog show='modalShown'  width='450px' height='50%'>
+                <form role="form" ng-submit="toggleModal()">
+                    <label class="control-label" for="txtNombre">Nombre:</label>
+                    <input type="text" class="form-control" id="nombre" name="nombre"/>   
+                    <label class="control-label" for="txtEdad">Edad:</label>
+                    <input type="numeric" class="form-control" ng-keyup="saveInformation()" id="edad" name="edad"/>                 
+                    <input type="submit" value="Guardar" class="btn btn-primary" style="margin-left:5cm;margin-top:2cm;">              
+                </form>
+            </modal-dialog>
+        </div>
+      
+        <script>
+        var nombre,edad;
+
+        app = angular.module('ModalDemo', []);
+        app.directive('modalDialog', function() {
+        return {
+            restrict: 'AE',
+            scope: {
+            show: '='
+            },
+            replace: true,
+            transclude: true, 
+            link: function(scope, element, attrs) {
+            scope.dialogStyle = {};
+            if (attrs.width)
+                scope.dialogStyle.width = attrs.width;
+            if (attrs.height)
+                scope.dialogStyle.height = attrs.height;
+            scope.hideModal = function() {
+                scope.show = false;
+            };
+            },
+            template: "<div class='ng-modal' ng-show='show'><div class='ng-modal-overlay' ng-click='hideModal()'></div><div class='ng-modal-dialog' ng-style='dialogStyle'><div class='ng-modal-close' ng-click='hideModal()'>X</div><div class='ng-modal-dialog-content' ng-transclude></div></div></div>"
+        };
+        });
+        
+        app.config(function($httpProvider) {
+            //Enable cross domain calls
+            $httpProvider.defaults.useXDomain = true;
+
+            //Remove the header containing XMLHttpRequest used to identify ajax call 
+            //that would prevent CORS from working
+
+        });
+
+        app.controller('MyCtrl', ['$scope','$http' ,function($scope,$http) {
+        $scope.modalShown = false;
+        $scope.toggleModal = function() {
+            $scope.modalShown = !$scope.modalShown;
+            if($scope.modalShown == false && !((document.getElementById("edad").value=="")||(document.getElementById("nombre").value="")))
+            {
+                $scope.empleados.push({ 'nombre':nombre, 'edad':edad });
+                $scope.DardeAlta(nombre,edad);
+                document.getElementById("nombre").value="";
+                document.getElementById("edad").value="";
+            }
+        };
+
+        $scope.saveInformation = function(){
+            nombre  = document.getElementById("nombre").value;
+            edad    = document.getElementById("edad").value;
+        };
+
+        $scope.empleados = [];
+        $http({
+			method : 'GET',
+			url : 'http://localhost:57694/api/example'
+            /*headers: {
+            'Origin': 'http://127.0.0.1'
+             }*/
+		}).success(function(data, status, headers, config) {
+			$scope.empleados = data;
+		}).error(function(data, status, headers, config) {
+			alert( "failure");
+		});
+
+        $scope.DardeAlta =function (nombreVal,edadVal)
+        { 
+            $http({
+                method : 'PUT',
+                url : 'http://localhost:57694/api/example/',
+                data: {'edad':edadVal, 'nombre':nombreVal}
+            }).success(function(data, status, headers, config) {
+                alert("Se dio de alta el Usuario");
+            }).error(function(data, status, headers, config) {
+                alert( "No se pudo dar de alta el usuario");
+            });
+        }
+        }]);
+      </script>
+      <script src="http://static.jsbin.com/js/render/edit.js?3.39.19"></script>
+   </body>
+</html>
